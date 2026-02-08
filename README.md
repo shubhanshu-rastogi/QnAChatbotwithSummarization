@@ -63,13 +63,56 @@ Each project includes its own `.env.example` and README with the exact environme
 
 ```mermaid
 flowchart LR
-  U["User"] --> FE["Frontend (React/Vite)"]
-  FE --> BE["Backend (FastAPI)"]
-  BE --> VS["ChromaDB (Session Vector Store)"]
-  BE --> OAI["OpenAI Embeddings + Chat"]
-  BE --> DOC["Document Ingest (PDF/DOCX/TXT)"]
-  DOC --> VS
-  BE --> FE
+  subgraph FE["Frontend (React/Vite)"]
+    U["User"]
+    UP["Upload UI"]
+    QA["Q&A UI"]
+    SUM["Summary UI"]
+    U --> UP
+    U --> QA
+    U --> SUM
+  end
+
+  subgraph BE["Backend (FastAPI)"]
+    API["/upload, /ask, /summary, /health"]
+    ING["Ingest Pipeline"]
+    RESET["Session Reset"]
+    LOAD["Loaders (PDF/DOCX/TXT)"]
+    CHUNK["Chunking"]
+    EMB["Embeddings (OpenAI)"]
+    RET["Retriever (Top-K)"]
+    PROMPT["Prompt Builder"]
+    LLM["Chat Completion (OpenAI)"]
+  end
+
+  subgraph VS["Vector Store"]
+    CHROMA["ChromaDB (Session Collection)"]
+  end
+
+  subgraph EVAL["Evaluation (Optional)"]
+    DEEPEVAL["DeepEval Notebooks/Tests"]
+  end
+
+  UP --> API
+  QA --> API
+  SUM --> API
+
+  API --> ING
+  ING --> RESET
+  RESET --> CHROMA
+  ING --> LOAD
+  LOAD --> CHUNK
+  CHUNK --> EMB
+  EMB --> CHROMA
+
+  API --> RET
+  RET --> CHROMA
+  RET --> PROMPT
+  PROMPT --> LLM
+  LLM --> API
+
+  API --> FE
+  DEEPEVAL --> API
 ```
 
 Session-based behavior: each upload resets the vector store and creates a new session id.
