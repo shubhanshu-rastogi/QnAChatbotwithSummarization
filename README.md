@@ -1,5 +1,9 @@
 # FinancialAssistant Workspace
 
+![GitHub stars](https://img.shields.io/github/stars/shubhanshu-rastogi/QnAChatbotwithSummarization?style=flat)
+![GitHub last commit](https://img.shields.io/github/last-commit/shubhanshu-rastogi/QnAChatbotwithSummarization?style=flat)
+![GitHub issues](https://img.shields.io/github/issues/shubhanshu-rastogi/QnAChatbotwithSummarization?style=flat)
+
 A multi-project workspace for session-based document Q&A and summarization workflows using FastAPI + React (Vite), ChromaDB, OpenAI embeddings/chat, and DeepEval evaluation.
 
 ## What This Repo Contains
@@ -54,6 +58,21 @@ Each project includes its own `.env.example` and README with the exact environme
 - Question answering with citations
 - 8–12 line summaries
 - DeepEval evaluation layers (in the alternate project)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  U["User"] --> FE["Frontend (React/Vite)"]
+  FE --> BE["Backend (FastAPI)"]
+  BE --> VS["ChromaDB (Session Vector Store)"]
+  BE --> OAI["OpenAI Embeddings + Chat"]
+  BE --> DOC["Document Ingest (PDF/DOCX/TXT)"]
+  DOC --> VS
+  BE --> FE
+```
+
+Session-based behavior: each upload resets the vector store and creates a new session id.
 
 ## Folder Guide
 
