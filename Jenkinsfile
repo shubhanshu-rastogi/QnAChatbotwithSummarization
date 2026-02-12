@@ -7,6 +7,8 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '30'))
   }
 
+  // For Multibranch Pipeline jobs, webhooks are usually handled by the job itself.
+  // Keeping this is fine for a single-branch Pipeline job.
   triggers {
     githubPush()
   }
@@ -32,6 +34,16 @@ pipeline {
       defaultValue: true,
       description: 'Run deterministic unit smoke tests before BDD smoke gate.'
     )
+    string(
+      name: 'EVAL_REPO_URL',
+      defaultValue: 'https://github.com/shubhanshu-rastogi/AgenticEvalUsingDeepeval',
+      description: 'Repo URL for the RAG evaluation BDD framework.'
+    )
+    string(
+      name: 'EVAL_REPO_BRANCH',
+      defaultValue: 'main',
+      description: 'Branch of the evaluation repo to use.'
+    )
   }
 
   environment {
@@ -40,9 +52,18 @@ pipeline {
   }
 
   stages {
-    stage('Checkout') {
+    stage('Checkout Demo Repo') {
       steps {
         checkout scm
+      }
+    }
+
+    stage('Checkout Eval Framework Repo') {
+      steps {
+        dir('rag_eval_bdd') {
+          // If your eval repo is private, add: credentialsId: 'your-github-creds-id'
+          git branch: params.EVAL_REPO_BRANCH, url: params.EVAL_REPO_URL
+        }
       }
     }
 
