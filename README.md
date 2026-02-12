@@ -126,3 +126,4 @@ Session-based behavior: each upload resets the vector store and creates a new se
 
 - These projects are session-based: uploading a new document resets the vector store.
 - Use the project-level READMEs for full setup and troubleshooting.
+- CI trigger check: this note was added to validate Jenkins webhook execution on a new commit.
