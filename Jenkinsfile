@@ -50,7 +50,8 @@ pipeline {
   environment {
     PYTHONUNBUFFERED = '1'
     PIP_DISABLE_PIP_VERSION_CHECK = '1'
-    PYTHON_BIN = 'python3.11'
+    PYTHON_BIN = '/opt/homebrew/bin/python3.11'
+    PATH = '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
   }
 
   stages {
