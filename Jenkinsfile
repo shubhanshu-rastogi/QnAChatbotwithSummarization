@@ -5,6 +5,7 @@ pipeline {
     timestamps()
     disableConcurrentBuilds()
     buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '30'))
+    skipDefaultCheckout(true)
   }
 
   // For Multibranch Pipeline jobs, webhooks are usually handled by the job itself.
@@ -70,11 +71,8 @@ pipeline {
     stage('Setup Python') {
       steps {
         sh '''
-          cd rag_eval_bdd
-          python3 -m venv .venv-ci
-          . .venv-ci/bin/activate
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          cd rag_eval_bdd/rag_eval_bdd
+          make install VENV=.venv-ci
         '''
       }
     }
@@ -85,9 +83,8 @@ pipeline {
       }
       steps {
         sh '''
-          cd rag_eval_bdd
-          . .venv-ci/bin/activate
-          make smoke
+          cd rag_eval_bdd/rag_eval_bdd
+          make smoke VENV=.venv-ci
         '''
       }
     }
@@ -96,10 +93,9 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'openai-api-key', variable: 'OPENAI_API_KEY')]) {
           sh '''
-            cd rag_eval_bdd
-            . .venv-ci/bin/activate
+            cd rag_eval_bdd/rag_eval_bdd
             export BASE_URL="${BASE_URL}"
-            make run-tags TAGS="${SMOKE_TAGS}"
+            make run-tags VENV=.venv-ci TAGS="${SMOKE_TAGS}"
           '''
         }
       }
@@ -113,7 +109,7 @@ pipeline {
               allowMissing: false,
               alwaysLinkToLastBuild: true,
               keepAll: true,
-              reportDir: 'rag_eval_bdd/results/reports',
+              reportDir: 'rag_eval_bdd/rag_eval_bdd/results/reports',
               reportFiles: 'index.html',
               reportName: 'RAG Executive Report (Current Run)'
             ])
@@ -126,7 +122,7 @@ pipeline {
               allowMissing: false,
               alwaysLinkToLastBuild: true,
               keepAll: true,
-              reportDir: 'rag_eval_bdd/results/trends',
+              reportDir: 'rag_eval_bdd/rag_eval_bdd/results/trends',
               reportFiles: 'last5.html',
               reportName: 'RAG Trend Dashboard (Last 5)'
             ])
@@ -143,7 +139,7 @@ pipeline {
       }
       steps {
         sh '''
-          cd rag_eval_bdd
+          cd rag_eval_bdd/rag_eval_bdd
           tar -czf results/reports/report_bundle_${BUILD_NUMBER}.tar.gz \
             results/reports/index.html \
             results/trends/last5.html \
@@ -174,11 +170,11 @@ pipeline {
                 <ul>
                   <li><a href="${env.BUILD_URL}RAG_Executive_Report__Current_Run_/">Executive Report (Current Run)</a></li>
                   <li><a href="${env.BUILD_URL}RAG_Trend_Dashboard__Last_5_/">Trend Dashboard (Last 5)</a></li>
-                  <li><a href="${env.BUILD_URL}artifact/rag_eval_bdd/results/reports/technical_logs.json">Technical Logs JSON</a></li>
+                  <li><a href="${env.BUILD_URL}artifact/rag_eval_bdd/rag_eval_bdd/results/reports/technical_logs.json">Technical Logs JSON</a></li>
                 </ul>
                 <p>Reports are attached and also archived as build artifacts.</p>
               """,
-              attachmentsPattern: 'rag_eval_bdd/results/reports/index.html,rag_eval_bdd/results/trends/last5.html,rag_eval_bdd/results/reports/technical_logs.json,rag_eval_bdd/results/reports/report_bundle_*.tar.gz'
+              attachmentsPattern: 'rag_eval_bdd/rag_eval_bdd/results/reports/index.html,rag_eval_bdd/rag_eval_bdd/results/trends/last5.html,rag_eval_bdd/rag_eval_bdd/results/reports/technical_logs.json,rag_eval_bdd/rag_eval_bdd/results/reports/report_bundle_*.tar.gz'
             )
           } catch (Exception err) {
             echo "Email Extension plugin missing or mail setup issue: ${err.getMessage()}"
@@ -200,8 +196,8 @@ pipeline {
       }
     }
     always {
-      archiveArtifacts artifacts: 'rag_eval_bdd/results/**', allowEmptyArchive: true
-      archiveArtifacts artifacts: 'rag_eval_bdd/.pytest_cache/**', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'rag_eval_bdd/rag_eval_bdd/results/**', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'rag_eval_bdd/rag_eval_bdd/.pytest_cache/**', allowEmptyArchive: true
     }
   }
 }
