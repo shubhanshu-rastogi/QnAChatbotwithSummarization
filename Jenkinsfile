@@ -50,6 +50,7 @@ pipeline {
   environment {
     PYTHONUNBUFFERED = '1'
     PIP_DISABLE_PIP_VERSION_CHECK = '1'
+    PYTHON_BIN = 'python3.11'
   }
 
   stages {
@@ -68,11 +69,28 @@ pipeline {
       }
     }
 
+    stage('Preflight Python') {
+      steps {
+        sh '''
+          set -e
+          if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
+            echo "ERROR: ${PYTHON_BIN} is required on the Jenkins agent."
+            echo "Install Python 3.11+ and rerun."
+            exit 1
+          fi
+          "${PYTHON_BIN}" --version
+        '''
+      }
+    }
+
     stage('Setup Python') {
       steps {
         sh '''
+          set -e
           cd rag_eval_bdd/rag_eval_bdd
-          make install VENV=.venv-ci
+          rm -rf .venv-ci
+          "${PYTHON_BIN}" -m venv .venv-ci
+          make install VENV=.venv-ci PYTHON="${PYTHON_BIN}"
         '''
       }
     }
